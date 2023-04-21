@@ -28,4 +28,4 @@ clone this project to create your own website
 > 
 > you need to change your project setting to read your *index.html* and other pages of yuor website from *./docs* directory.
 > 
-> read more about this [here](https://pages.github.com/)
+> read more about how github pages works [here](https://pages.github.com/)
