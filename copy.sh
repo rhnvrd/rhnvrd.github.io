@@ -1,9 +1,10 @@
 clear
 
 
-echo "copy poole output to docs folder for github pages @ rhnvrd.github.io"
+echo "build and copy poole output to docs folder for github pages @ rhnvrd.github.io"
 
-cp -r ./output/ ./docs
+python3 ../core/poole-tip/poole.py --build
+cp -r ./rhnvrd.github.io/output/ ./rhnvrd.github.io/docs
 
 # data1="mahdi" 
 # data2="ali" 
