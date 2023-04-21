@@ -2,7 +2,9 @@ clear
 
 
 
-python3 ../core/poole-tip/poole.py --build && cp -r ./output/ ./docs
+rm -r ./docs &&\
+python3 ../core/poole-tip/poole.py --build &&\
+cp -r ./output/ ./docs &&\
 echo "\n\n build and copy poole output to docs folder for github pages @ rhnvrd.github.io \n\n"
 
 
