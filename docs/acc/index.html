@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,
+      initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>حسابداری</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <script src="./jalaali.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <form id="myForm" >
+      <fieldset id="fieldset1">
+        <legend>فرم حسابداری</legend>
+
+        <div class="date-inputs">
+          
+          <!-- <label for="DD">روز</label> -->
+          <p id="DD"></p>
+          <!-- <label for="MM">ماه</label> -->
+          <p id="MM"></p>
+          <!-- <label for="YY">سال</label> -->
+          <p id="YY"></p>
+
+          <!-- <label for="TT">ساعت</label> -->
+          <p id="TT"></p>
+        </div>
+
+        <label for="PayFor">عنوان</label>
+        <input id="PayFor" name="PayFor" type="text" placeholder="عنوان" required>
+
+        <div class="toggle-switch">
+          <input type="radio" id="paid" name="paymentType" value="Paid" checked>
+          <label for="paid">پرداخت</label>
+          <input type="radio" id="income" name="paymentType" value="Income">
+          <label for="income">دریافت</label>
+        </div>
+
+        <label id="amountLabel" for="amount">مبلغ</label>
+        <input id="amount" name="Paid" type="number" placeholder="مبلغ را وارد کنید" required>
+
+        <label for="Description">توضیحات</label>
+        <input id="Description" name="Description" type="text" placeholder="توضیحات را وارد کنید" required>
+
+        <label>حساب</label>
+        <div class="toggle-switch">
+          <input type="radio" id="blu" name="ACC" value="Blu">
+          <label for="blu">‌Blu</label>
+          <input type="radio" id="meli" name="ACC" value="Meli">
+          <label for="meli">Melli</label>
+          <input type="radio" id="null" name="ACC" value="Null" checked>
+          <label for="null">Null</label>
+        </div>
+        <br />
+        <br />
+        <br />
+        <input id="submitButton" type="submit" value="ارسال">
+      </fieldset>
+    </form>
+    <div id="response"></div>
+  </div>
+
+  <script>
+    function getShamsiDate() {
+      const now = new Date();
+      const shamsiDate = jalaali.toJalaali(now);
+      document.getElementById("YY").innerHTML = shamsiDate.jy;
+      document.getElementById("MM").innerHTML = shamsiDate.jm+'/';
+      document.getElementById("DD").innerHTML = shamsiDate.jd+'/';
+      document.getElementById("TT").innerHTML = ' ----- '+now.toLocaleTimeString();
+    }
+
+    window.onload = function () {
+      getShamsiDate();
+    };
+    document.querySelectorAll('input[name="paymentType"]').forEach((elem) => {
+      elem.addEventListener('change', function (event) {
+        const label = document.getElementById('amountLabel');
+        const input = document.getElementById('amount');
+        if (event.target.value === 'Paid') {
+          input.name = 'Paid';
+          //label.textContent = 'پرداخت';
+          //input.placeholder = 'مبلغ پرداختی';
+        } else {
+          input.name = 'Income';
+          //label.textContent = 'درآمد';
+          //input.placeholder = 'مبلغ درآمد';
+        }
+      });
+    });
+  </script>
+
+  <script>
+    document.getElementById('myForm').addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevent the form from submitting the traditional way
+
+      const formData = new FormData(this); // Gather form data
+      var fieldset1 = document.getElementById("fieldset1");
+      var subButton = document.getElementById("submitButton");
+      subButton.remove();
+      const laodingElement = '<div class="lds-ellipsis" id="loader"><div></div><div></div><div></div><div></div></div>';
+      fieldset1.innerHTML = fieldset1.innerHTML + laodingElement;
+      var loadingButton = document.getElementById("loader");
+      
+      const now = new Date();
+      const shamsiDate = jalaali.toJalaali(now);
+
+      formData.append("DD",shamsiDate.jd);
+      formData.append("YY",shamsiDate.jy);
+      formData.append("MM",shamsiDate.jm);
+      formData.append("TT",now.toLocaleTimeString());
+      
+      const endPoint = "https://script.google.com/macros/s/AKfycby1ZMKYOOu8X9CUwQguOogwRp11pz-p8DCYvWhHnQeuIA4Tdr4VGCrye7lrbeaFdZ3f9w/exec";
+      fetch(endPoint, { // Replace '/submit-form' with your server endpoint
+        method: 'POST',
+        body: formData,
+      })
+        .then(response => response.json()) // Parse JSON response
+        .then(data => {
+          // Handle success (e.g., update the DOM or show a message)
+          document.getElementById('response').textContent = 'Form submitted successfully!';
+          loadingButton.remove();
+          fieldset1.innerHTML = fieldset1.innerHTML + '<input id="submitButton" type="submit" value="ارسال">';
+        })
+        .catch(error => {
+          // Handle error
+          console.error('Error:', error);
+          document.getElementById('response').textContent = 'There was an error submitting the form.';
+        });
+    });
+  </script>
+
+  <script>
+    window.addEventListener('load', () => {
+      registerSW();
+    });
+
+    // Register the Service Worker
+    async function registerSW() {
+      if ('serviceWorker' in navigator) {
+        try {
+          await navigator
+            .serviceWorker
+            .register('serviceworker.js');
+        }
+        catch (e) {
+          console.log('SW registration failed');
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>
