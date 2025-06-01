@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>محاسبه قیمت طلا</title>
+    <title>محاسبه‌گر قیمت طلا و جواهرات</title>
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            colors: { primary: "#d4af37", secondary: "#f5f5f5" },
+            colors: { primary: "#c8a97e", secondary: "#a8937e" },
             borderRadius: {
               none: "0px",
               sm: "4px",
@@ -29,22 +29,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
     />
     <style>
       :where([class^="ri-"])::before { content: "\f3c2"; }
+      @font-face {
+      font-family: 'Cluster';
+      src: url('https://fonts.cdnfonts.com/css/cluster') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+      }
       body {
-      font-family: 'Vazirmatn', sans-serif;
-      background-color: #f9f9f9;
+      font-family: 'Vazir', sans-serif;
+      background-color: #f8f9fa;
       }
       input[type="number"]::-webkit-inner-spin-button,
       input[type="number"]::-webkit-outer-spin-button {
@@ -54,449 +63,1008 @@
       input[type="number"] {
       -moz-appearance: textfield;
       }
-      .gold-bg {
-      background: linear-gradient(135deg, #f9f3e3, #f5ebd1);
+      .gold-gradient {
+      background: linear-gradient(135deg, #d4af37 0%, #f2d272 50%, #d4af37 100%);
       }
-      .gold-card {
-      background: linear-gradient(135deg, #fff, #fdfaf0);
-      border: 1px solid #f0e6c9;
+      .diamond-gradient {
+      background: linear-gradient(135deg, #8b7d3a 0%, #a8a396 50%, #8b7d3a 100%);
       }
-      .price-display {
-      background: linear-gradient(135deg, #f8f0dc, #f1e5c0);
+      .result-card {
+      background: linear-gradient(135deg, #3a3a3a 0%, #5a5a5a 100%);
+      }
+      .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
       }
     </style>
   </head>
   <body class="min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-3xl">
-      <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">محاسبه قیمت طلا</h1>
-        <p class="text-gray-600">
-          محاسبه دقیق قیمت طلا با احتساب اجرت، سود و مالیات
-        </p>
-      </header>
-      <div class="gold-bg rounded-lg shadow-lg p-6 mb-8">
-        <div
-          class="flex flex-col md:flex-row justify-between items-center gap-4"
-        >
-          <div>
-            <h2 class="text-lg font-medium text-gray-700 mb-1">
-              قیمت روز طلای ۱۸ عیار
-            </h2>
-            <div class="flex items-center">
-              <span id="goldPrice" class="text-3xl font-bold text-primary"
-                >در حال بارگذاری...</span
-              >
-              <span class="mr-2 text-gray-600">تومان / گرم</span>
-            </div>
-            <div class="flex items-center text-sm text-gray-500 mt-1">
-              <span id="lastUpdate">آخرین به‌روزرسانی: -</span>
-            </div>
+    <header class="gold-gradient text-white py-4 shadow-md">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-['Pacifico'] font-bold">logo</h1>
+          <h2 class="text-xl font-bold">محاسبه‌گر قیمت طلا و جواهرات</h2>
+          <div class="w-8 h-8 flex items-center justify-center">
+            <i class="ri-calculator-line ri-xl"></i>
           </div>
-          <button
-            id="refreshPrice"
-            class="bg-primary text-white px-4 py-2 !rounded-button flex items-center whitespace-nowrap"
+        </div>
+      </div>
+    </header>
+    <div class="container mx-auto px-4 py-8">
+      <!-- Live Gold Price Section -->
+      <div class="mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            id="goldPriceCard"
+            class="bg-white rounded shadow-lg p-6 border-2 border-primary card-hover transition-all duration-300 flex flex-col"
           >
-            <div class="w-5 h-5 flex items-center justify-center ml-1">
-              <i class="ri-refresh-line"></i>
+            <h3 class="text-lg font-bold mb-2 text-gray-700">
+              قیمت طلای ۱۸ عیار
+            </h3>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <span id="goldPrice" class="text-2xl font-bold text-primary"
+                  >در حال بارگذاری...</span
+                >
+                <span class="text-sm text-gray-500 mr-1">تومان / گرم</span>
+              </div>
+              <div id="priceChangeContainer" class="flex items-center">
+                <span
+                  id="priceChangeIcon"
+                  class="w-6 h-6 flex items-center justify-center mr-1"
+                >
+                  <i class="ri-arrow-up-line ri-lg"></i>
+                </span>
+                <span id="priceChange" class="text-sm font-medium">0.0%</span>
+              </div>
             </div>
-            به‌روزرسانی قیمت
-          </button>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="gold-card rounded-lg shadow p-5">
-          <h3 class="text-lg font-medium text-gray-800 mb-4">مشخصات طلا</h3>
-          <div class="mb-4">
-            <label for="goldWeight" class="block text-gray-700 mb-1"
-              >وزن طلا (گرم)</label
-            >
-            <div class="relative">
-              <input
-                type="number"
-                id="goldWeight"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="مثال: 4.25"
-                step="0.01"
-                min="0"
-              />
-            </div>
-          </div>
-          <div class="mb-4">
-            <label for="goldBasePrice" class="block text-gray-700 mb-1"
-              >فی طلا (تومان)</label
-            >
-            <div class="relative">
-              <input
-                type="number"
-                id="goldBasePrice"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="قیمت پایه هر گرم طلا"
-              />
+            <div class="mt-auto text-xs text-gray-500 flex justify-between">
+              <span id="updateDate">تاریخ: --/--/----</span>
+              <span id="updateTime">ساعت: --:--</span>
             </div>
           </div>
-          <div class="mb-4">
-            <label for="discount" class="block text-gray-700 mb-1"
-              >تخفیف (تومان)</label
-            >
-            <div class="relative">
-              <input
-                type="number"
-                id="discount"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="مبلغ تخفیف"
-                min="0"
-              />
+          <div
+            class="bg-white rounded shadow-lg p-6 border-2 border-primary card-hover transition-all duration-300 flex flex-col"
+          >
+            <h3 class="text-lg font-bold mb-2 text-gray-700">
+              قیمت سکه بهار آزادی
+            </h3>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <span class="text-2xl font-bold text-primary">۴۲,۵۰۰,۰۰۰</span>
+                <span class="text-sm text-gray-500 mr-1">تومان</span>
+              </div>
+              <div class="flex items-center text-green-500">
+                <span class="w-6 h-6 flex items-center justify-center mr-1">
+                  <i class="ri-arrow-up-line ri-lg"></i>
+                </span>
+                <span class="text-sm font-medium">۱.۲%</span>
+              </div>
+            </div>
+            <div class="mt-auto text-xs text-gray-500 flex justify-between">
+              <span>تاریخ: ۱۴۰۴/۰۳/۱۱</span>
+              <span>ساعت: ۱۱:۰۱</span>
             </div>
           </div>
-        </div>
-        <div class="gold-card rounded-lg shadow p-5">
-          <h3 class="text-lg font-medium text-gray-800 mb-4">محاسبات اضافی</h3>
-          <div class="mb-4">
-            <label for="wagePercent" class="block text-gray-700 mb-1"
-              >اجرت (درصد)</label
-            >
-            <div class="relative">
-              <input
-                type="number"
-                id="wagePercent"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="درصد اجرت"
-                min="0"
-              />
+          <div
+            class="bg-white rounded shadow-lg p-6 border-2 border-primary card-hover transition-all duration-300 flex flex-col"
+          >
+            <h3 class="text-lg font-bold mb-2 text-gray-700">قیمت دلار</h3>
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <span class="text-2xl font-bold text-primary">۵۸,۲۰۰</span>
+                <span class="text-sm text-gray-500 mr-1">تومان</span>
+              </div>
+              <div class="flex items-center text-red-500">
+                <span class="w-6 h-6 flex items-center justify-center mr-1">
+                  <i class="ri-arrow-down-line ri-lg"></i>
+                </span>
+                <span class="text-sm font-medium">۰.۵%</span>
+              </div>
             </div>
-          </div>
-          <div class="mb-4">
-            <label for="profitPercent" class="block text-gray-700 mb-1"
-              >سود (درصد)</label
-            >
-            <div class="relative">
-              <input
-                type="number"
-                id="profitPercent"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="درصد سود"
-                min="0"
-              />
-            </div>
-          </div>
-          <div class="mb-4">
-            <label for="taxPercent" class="block text-gray-700 mb-1"
-              >مالیات (درصد)</label
-            >
-            <div class="relative">
-              <input
-                type="number"
-                id="taxPercent"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                value="9"
-              />
+            <div class="mt-auto text-xs text-gray-500 flex justify-between">
+              <span>تاریخ: ۱۴۰۴/۰۳/۱۱</span>
+              <span>ساعت: ۱۱:۰۱</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="gold-card rounded-lg shadow p-6 mb-8">
-        <h3 class="text-lg font-medium text-gray-800 mb-4">جزئیات محاسبه</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div class="bg-gray-50 p-3 rounded">
-            <div class="text-gray-600 text-sm mb-1">قیمت پایه طلا</div>
-            <div id="baseGoldPrice" class="text-lg font-medium">۰ تومان</div>
-          </div>
-          <div class="bg-gray-50 p-3 rounded">
-            <div class="text-gray-600 text-sm mb-1">مبلغ اجرت</div>
-            <div id="wageAmount" class="text-lg font-medium">۰ تومان</div>
-          </div>
-          <div class="bg-gray-50 p-3 rounded">
-            <div class="text-gray-600 text-sm mb-1">مبلغ سود</div>
-            <div id="profitAmount" class="text-lg font-medium">۰ تومان</div>
-          </div>
-          <div class="bg-gray-50 p-3 rounded">
-            <div class="text-gray-600 text-sm mb-1">
-              مبلغ مالیات (۹٪ از اجرت و سود)
-            </div>
-            <div id="taxAmount" class="text-lg font-medium">۰ تومان</div>
-          </div>
-          <div class="bg-gray-50 p-3 rounded">
-            <div class="text-gray-600 text-sm mb-1">مبلغ تخفیف</div>
-            <div id="discountAmount" class="text-lg font-medium">۰ تومان</div>
-          </div>
-        </div>
-        <div class="price-display p-4 rounded-lg">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-700 font-medium">قیمت نهایی:</span>
-            <span id="finalPrice" class="text-2xl font-bold text-primary"
-              >۰ تومان</span
-            >
-          </div>
-        </div>
-      </div>
-      <div class="gold-card rounded-lg shadow p-5 mb-8">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-medium text-gray-800">محاسبه قیمت جواهرات</h3>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="jewelryToggle" class="sr-only peer" />
-            <div
-              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-            ></div>
-          </label>
-        </div>
-        <div id="jewelrySection" class="hidden">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label for="diamondWeight" class="block text-gray-700 mb-1"
-                >وزن برلیان (قیراط)</label
-              >
-              <input
-                type="number"
-                id="diamondWeight"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="مثال: 0.5"
-                step="0.01"
-                min="0"
-              />
-            </div>
-            <div>
-              <label for="diamondPrice" class="block text-gray-700 mb-1"
-                >قیمت هر قیراط برلیان (تومان)</label
-              >
-              <input
-                type="number"
-                id="diamondPrice"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="قیمت هر قیراط"
-              />
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label for="jewelryProfit" class="block text-gray-700 mb-1"
-                >سود جواهرات (درصد)</label
-              >
-              <input
-                type="number"
-                id="jewelryProfit"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                placeholder="درصد سود"
-                min="0"
-              />
-            </div>
-            <div>
-              <label for="jewelryTax" class="block text-gray-700 mb-1"
-                >مالیات جواهرات (درصد)</label
-              >
-              <input
-                type="number"
-                id="jewelryTax"
-                class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                value="9"
-              />
-            </div>
-          </div>
-          <div class="mt-4 bg-gray-50 p-4 rounded">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div class="text-gray-600 text-sm mb-1">قیمت پایه برلیان</div>
-                <div id="baseDiamondPrice" class="text-lg font-medium">
-                  ۰ تومان
-                </div>
-              </div>
-              <div>
-                <div class="text-gray-600 text-sm mb-1">سود برلیان</div>
-                <div id="jewelryProfitAmount" class="text-lg font-medium">
-                  ۰ تومان
-                </div>
-              </div>
-              <div>
-                <div class="text-gray-600 text-sm mb-1">مالیات برلیان</div>
-                <div id="jewelryTaxAmount" class="text-lg font-medium">
-                  ۰ تومان
-                </div>
-              </div>
-              <div>
-                <div class="text-gray-600 text-sm mb-1">قیمت نهایی برلیان</div>
-                <div id="finalJewelryPrice" class="text-lg font-medium">
-                  ۰ تومان
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="flex justify-center">
-        <button
-          id="resetForm"
-          class="bg-gray-200 text-gray-700 px-6 py-2 !rounded-button hover:bg-gray-300 transition-colors whitespace-nowrap"
+      <!-- Calculator Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Gold Calculator Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg overflow-hidden card-hover transition-all duration-300"
         >
-          پاک کردن فرم
-        </button>
+          <div class="gold-gradient py-3 px-4">
+            <h3 class="text-white text-lg font-bold flex items-center">
+              <span class="w-6 h-6 flex items-center justify-center ml-2">
+                <i class="ri-coins-line"></i>
+              </span>
+              محاسبه قیمت طلا
+            </h3>
+          </div>
+          <div class="p-6">
+            <div class="mb-6">
+              <h4 class="text-gray-700 font-bold mb-3">مشخصات طلا</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >وزن طلا (گرم)</label
+                  >
+                  <input
+                    type="number"
+                    id="goldWeight"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="مثال: ۵.۲"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >فی طلا (تومان)</label
+                  >
+                  <input
+                    type="number"
+                    id="goldUnitPrice"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="مثال: ۶,۴۴۷,۶۰۰"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >تخفیف (تومان)</label
+                  >
+                  <input
+                    type="number"
+                    id="goldDiscount"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="مثال: ۱۰۰,۰۰۰"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="mb-6">
+              <h4 class="text-gray-700 font-bold mb-3">درصدها</h4>
+              <div class="grid grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >اجرت (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="goldWage"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="۷"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >سود (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="goldProfit"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="۳"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >مالیات (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="goldTax"
+                    class="w-full px-4 py-2 border border-gray-300 rounded bg-gray-100 focus:outline-none"
+                    value="9"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 pt-4 mb-4">
+              <h4 class="text-gray-700 font-bold mb-3">جزئیات محاسبه</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">قیمت پایه طلا:</span>
+                  <span id="goldBasePrice" class="font-medium">۰ تومان</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">مبلغ اجرت:</span>
+                  <span id="goldWageAmount" class="font-medium">۰ تومان</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">مبلغ سود:</span>
+                  <span id="goldProfitAmount" class="font-medium">۰ تومان</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">مبلغ مالیات:</span>
+                  <span id="goldTaxAmount" class="font-medium">۰ تومان</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">مبلغ تخفیف:</span>
+                  <span id="goldDiscountAmount" class="font-medium"
+                    >۰ تومان</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 pt-4">
+              <div class="flex justify-between items-center">
+                <span class="text-lg font-bold text-gray-700"
+                  >قیمت نهایی طلا:</span
+                >
+                <span id="goldFinalPrice" class="text-xl font-bold text-primary"
+                  >۰ تومان</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Jewelry Calculator Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg overflow-hidden card-hover transition-all duration-300"
+        >
+          <div class="diamond-gradient py-3 px-4">
+            <h3 class="text-white text-lg font-bold flex items-center">
+              <span class="w-6 h-6 flex items-center justify-center ml-2">
+                <i class="ri-vip-diamond-line"></i>
+              </span>
+              محاسبه قیمت جواهرات
+            </h3>
+          </div>
+          <div class="p-6">
+            <div class="mb-6">
+              <h4 class="text-gray-700 font-bold mb-3">مشخصات برلیان</h4>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >وزن برلیان (قیراط)</label
+                  >
+                  <input
+                    type="number"
+                    id="diamondWeight"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-secondary"
+                    placeholder="مثال: ۰.۵"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >قیمت هر قیراط (تومان)</label
+                  >
+                  <input
+                    type="number"
+                    id="diamondUnitPrice"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-secondary"
+                    placeholder="مثال: ۳۵,۰۰۰,۰۰۰"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="mb-6">
+              <h4 class="text-gray-700 font-bold mb-3">درصدها</h4>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >سود جواهرات (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="diamondProfit"
+                    class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-secondary"
+                    placeholder="۵"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-600 mb-1"
+                    >مالیات جواهرات (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="diamondTax"
+                    class="w-full px-4 py-2 border border-gray-300 rounded bg-gray-100 focus:outline-none"
+                    value="9"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 pt-4 mb-4">
+              <h4 class="text-gray-700 font-bold mb-3">جزئیات محاسبه</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">قیمت پایه برلیان:</span>
+                  <span id="diamondBasePrice" class="font-medium">۰ تومان</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">سود برلیان:</span>
+                  <span id="diamondProfitAmount" class="font-medium"
+                    >۰ تومان</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">مالیات برلیان:</span>
+                  <span id="diamondTaxAmount" class="font-medium">۰ تومان</span>
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 pt-4">
+              <div class="flex justify-between items-center">
+                <span class="text-lg font-bold text-gray-700"
+                  >قیمت نهایی برلیان:</span
+                >
+                <span
+                  id="diamondFinalPrice"
+                  class="text-xl font-bold text-secondary"
+                  >۰ تومان</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Final Summary Card -->
+        <div class="flex flex-col">
+          <div
+            class="bg-white rounded-lg shadow-lg overflow-hidden mb-6 card-hover transition-all duration-300 flex-grow"
+          >
+            <div class="result-card py-3 px-4">
+              <h3 class="text-white text-lg font-bold flex items-center">
+                <span class="w-6 h-6 flex items-center justify-center ml-2">
+                  <i class="ri-bill-line"></i>
+                </span>
+                جمع‌بندی نهایی
+              </h3>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4 mb-6">
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">قیمت نهایی طلا:</span>
+                  <span id="summaryGoldPrice" class="font-medium text-primary"
+                    >۰ تومان</span
+                  >
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-gray-600">قیمت نهایی برلیان:</span>
+                  <span
+                    id="summaryDiamondPrice"
+                    class="font-medium text-secondary"
+                    >۰ تومان</span
+                  >
+                </div>
+                <div
+                  class="border-t border-gray-200 pt-4 flex justify-between items-center"
+                >
+                  <span class="text-lg font-bold text-gray-700">مجموع کل:</span>
+                  <span
+                    id="totalFinalPrice"
+                    class="text-xl font-bold text-gray-800"
+                    >۰ تومان</span
+                  >
+                </div>
+              </div>
+              <div class="space-y-3">
+                <button
+                  id="printInvoice"
+                  class="w-full py-3 bg-primary text-white font-bold rounded-button flex items-center justify-center transition-all hover:bg-opacity-90 whitespace-nowrap"
+                >
+                  <span class="w-6 h-6 flex items-center justify-center ml-2">
+                    <i class="ri-printer-line"></i>
+                  </span>
+                  چاپ فاکتور
+                </button>
+                <button
+                  id="saveCalculation"
+                  class="w-full py-3 bg-gray-700 text-white font-bold rounded-button flex items-center justify-center transition-all hover:bg-opacity-90 whitespace-nowrap"
+                >
+                  <span class="w-6 h-6 flex items-center justify-center ml-2">
+                    <i class="ri-save-line"></i>
+                  </span>
+                  ذخیره محاسبه
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Calculation History Card -->
+          <div
+            class="bg-white rounded-lg shadow-lg overflow-hidden card-hover transition-all duration-300 flex-grow"
+          >
+            <div class="bg-gray-700 py-3 px-4">
+              <h3 class="text-white text-lg font-bold flex items-center">
+                <span class="w-6 h-6 flex items-center justify-center ml-2">
+                  <i class="ri-history-line"></i>
+                </span>
+                تاریخچه محاسبات
+              </h3>
+            </div>
+            <div class="p-4">
+              <div id="calculationHistory" class="space-y-3">
+                <div class="text-center text-gray-500 py-4">
+                  هنوز محاسبه‌ای ذخیره نشده است
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <script id="goldPriceApi">
+    <!-- Invoice Print Template (Hidden) -->
+    <div id="invoicePrintTemplate" class="hidden">
+      <div class="p-8 max-w-4xl mx-auto bg-white">
+        <div class="flex justify-between items-center mb-8">
+          <div>
+            <h1 class="text-2xl font-bold">فاکتور خرید طلا و جواهرات</h1>
+            <p class="text-gray-600" id="invoiceDate"></p>
+          </div>
+          <div class="text-2xl font-['Pacifico'] font-bold">logo</div>
+        </div>
+        <div class="border-b-2 border-gray-200 pb-4 mb-4">
+          <h2 class="text-lg font-bold mb-2">مشخصات خریدار</h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p><span class="font-medium">نام:</span> مشتری گرامی</p>
+            </div>
+            <div>
+              <p>
+                <span class="font-medium">شماره فاکتور:</span>
+                <span id="invoiceNumber"></span>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="mb-6">
+          <h2 class="text-lg font-bold mb-4">اقلام خریداری شده</h2>
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="border border-gray-300 p-2 text-right">شرح کالا</th>
+                <th class="border border-gray-300 p-2 text-center">وزن</th>
+                <th class="border border-gray-300 p-2 text-center">
+                  قیمت واحد (تومان)
+                </th>
+                <th class="border border-gray-300 p-2 text-center">اجرت/سود</th>
+                <th class="border border-gray-300 p-2 text-center">مالیات</th>
+                <th class="border border-gray-300 p-2 text-center">
+                  قیمت کل (تومان)
+                </th>
+              </tr>
+            </thead>
+            <tbody id="invoiceItems">
+              <!-- Items will be added here -->
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-end mb-8">
+          <div class="w-1/2">
+            <div class="flex justify-between border-b border-gray-300 py-2">
+              <span class="font-medium">جمع کل:</span>
+              <span id="invoiceTotalPrice"></span>
+            </div>
+            <div class="flex justify-between border-b border-gray-300 py-2">
+              <span class="font-medium">مالیات (۹٪):</span>
+              <span id="invoiceTotalTax"></span>
+            </div>
+            <div class="flex justify-between border-b border-gray-300 py-2">
+              <span class="font-medium">تخفیف:</span>
+              <span id="invoiceTotalDiscount"></span>
+            </div>
+            <div class="flex justify-between py-2 font-bold">
+              <span>مبلغ قابل پرداخت:</span>
+              <span id="invoiceFinalPrice"></span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="text-center text-gray-600 text-sm mt-8 pt-4 border-t border-gray-300"
+        >
+          <p>با تشکر از خرید شما - جواهری نمونه</p>
+          <p>آدرس: تهران، خیابان ولیعصر، پلاک ۱۲۳</p>
+          <p>تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Gold Price API
       document.addEventListener("DOMContentLoaded", function () {
-        const goldPriceElement = document.getElementById("goldPrice");
-        const lastUpdateElement = document.getElementById("lastUpdate");
-        const goldBasePriceInput = document.getElementById("goldBasePrice");
-        const refreshPriceButton = document.getElementById("refreshPrice");
-        // Function to format numbers as Persian currency
-        function formatNumber(num) {
-          return new Intl.NumberFormat("fa-IR").format(num);
-        }
-        // Function to format date and time in Persian
-        function formatDateTime(date, time) {
-          return `${date} - ساعت ${time}`;
-        }
-        // Function to fetch gold price
-        function fetchGoldPrice() {
-          goldPriceElement.textContent = "در حال بارگذاری...";
-          fetch(
-            "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreewDNFCCmYu96Ot75MdNODKd2LRTik",
-          )
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("خطا در دریافت اطلاعات");
-              }
-              return response.json();
-            })
-            .then((data) => {
-              if (data && data.gold && data.gold.length > 0) {
-                const goldData = data.gold.find(
-                  (item) => item.symbol === "IR_GOLD_18K",
-                );
-                if (goldData) {
-                  const price = goldData.price;
-                  goldPriceElement.textContent = formatNumber(price);
-                  goldBasePriceInput.value = price;
-                //   goldBasePriceInput.setAttribute("readonly", false);
-                  lastUpdateElement.textContent = `آخرین به‌روزرسانی: ${formatDateTime(goldData.date, goldData.time)}`;
-                  // Trigger calculation
-                  calculatePrice();
-                } else {
-                  throw new Error("اطلاعات طلای ۱۸ عیار یافت نشد");
-                }
-              } else {
-                throw new Error("داده‌های معتبر دریافت نشد");
-              }
-            })
-            .catch((error) => {
-              console.error("Error fetching gold price:", error);
-              goldPriceElement.textContent = "خطا در دریافت قیمت";
-              lastUpdateElement.textContent = "خطا در دریافت اطلاعات";
-            });
-        }
-        // Fetch gold price on page load
-        fetchGoldPrice();
-        // Add event listener to refresh button
-        refreshPriceButton.addEventListener("click", fetchGoldPrice);
-      });
-    </script>
-    <script id="priceCalculator">
-      document.addEventListener("DOMContentLoaded", function () {
-        const jewelryToggle = document.getElementById("jewelryToggle");
-        const jewelrySection = document.getElementById("jewelrySection");
-        // Jewelry calculation elements
-        const diamondWeightInput = document.getElementById("diamondWeight");
-        const diamondPriceInput = document.getElementById("diamondPrice");
-        const jewelryProfitInput = document.getElementById("jewelryProfit");
-        const jewelryTaxInput = document.getElementById("jewelryTax");
-        const baseDiamondPriceElement = document.getElementById("baseDiamondPrice");
-        const jewelryProfitAmountElement = document.getElementById(
-          "jewelryProfitAmount",
-        );
-        const jewelryTaxAmountElement = document.getElementById("jewelryTaxAmount");
-        const finalJewelryPriceElement = document.getElementById("finalJewelryPrice");
-        // Toggle jewelry section
-        jewelryToggle.addEventListener("change", function () {
-          jewelrySection.classList.toggle("hidden");
-          if (!jewelrySection.classList.contains("hidden")) {
-            calculateJewelryPrice();
+        const defaultPrice = 6447600;
+        const defaultDate = "۱۴۰۴/۰۳/۱۱";
+        const defaultTime = "۱۱:۰۱";
+        const defaultChange = 0;
+        function updateGoldPriceDisplay(price, changePercent, date, time) {
+          const formattedPrice = new Intl.NumberFormat("fa-IR").format(price);
+          document.getElementById("goldPrice").textContent = formattedPrice;
+          document.getElementById("goldUnitPrice").value = price;
+          const changeElement = document.getElementById("priceChange");
+          const changeIconElement = document.getElementById("priceChangeIcon");
+          changeElement.textContent = changePercent + "%";
+          if (changePercent > 0) {
+            changeElement.classList.add("text-green-500");
+            changeIconElement.innerHTML = '<i class="ri-arrow-up-line ri-lg"></i>';
+            changeIconElement.classList.add("text-green-500");
+          } else if (changePercent < 0) {
+            changeElement.classList.add("text-red-500");
+            changeIconElement.innerHTML = '<i class="ri-arrow-down-line ri-lg"></i>';
+            changeIconElement.classList.add("text-red-500");
+          } else {
+            changeElement.classList.add("text-gray-500");
+            changeIconElement.innerHTML = '<i class="ri-subtract-line ri-lg"></i>';
+            changeIconElement.classList.add("text-gray-500");
           }
-        });
-        // Get all input elements
-        const goldWeightInput = document.getElementById("goldWeight");
-        const goldBasePriceInput = document.getElementById("goldBasePrice");
-        const wagePercentInput = document.getElementById("wagePercent");
-        const profitPercentInput = document.getElementById("profitPercent");
-        const taxPercentInput = document.getElementById("taxPercent");
-        const discountInput = document.getElementById("discount");
-        // Get all output elements
-        const baseGoldPriceElement = document.getElementById("baseGoldPrice");
-        const wageAmountElement = document.getElementById("wageAmount");
-        const profitAmountElement = document.getElementById("profitAmount");
-        const taxAmountElement = document.getElementById("taxAmount");
-        const discountAmountElement = document.getElementById("discountAmount");
-        const finalPriceElement = document.getElementById("finalPrice");
-        // Function to format numbers as Persian currency
-        function formatNumber(num) {
-          return new Intl.NumberFormat("fa-IR").format(Math.round(num));
+          document.getElementById("updateDate").textContent = "تاریخ: " + date;
+          document.getElementById("updateTime").textContent = "ساعت: " + time;
         }
-        // Function to calculate price
-        window.calculatePrice = function () {
-          // Get input values
-          const goldWeight = parseFloat(goldWeightInput.value) || 0;
-          const goldBasePrice = parseFloat(goldBasePriceInput.value) || 0;
-          const wagePercent = parseFloat(wagePercentInput.value) || 0;
-          const profitPercent = parseFloat(profitPercentInput.value) || 0;
-          const taxPercent = parseFloat(taxPercentInput.value) || 0;
-          const discount = parseFloat(discountInput.value) || 0;
-          // Calculate
-          const basePrice = goldWeight * goldBasePrice;
-          const wageAmount = (basePrice * wagePercent) / 100;
-          const profitAmount = (basePrice * profitPercent) / 100;
-          const taxAmount = ((wageAmount + profitAmount) * taxPercent) / 100;
-          const finalPrice =
-            basePrice + wageAmount + profitAmount + taxAmount - discount;
-          // Update output elements
-          baseGoldPriceElement.textContent = `${formatNumber(basePrice)} تومان`;
-          wageAmountElement.textContent = `${formatNumber(wageAmount)} تومان`;
-          profitAmountElement.textContent = `${formatNumber(profitAmount)} تومان`;
-          taxAmountElement.textContent = `${formatNumber(taxAmount)} تومان`;
-          discountAmountElement.textContent = `${formatNumber(discount)} تومان`;
-          finalPriceElement.textContent = `${formatNumber(finalPrice)} تومان`;
-        };
-        // Add event listeners to all inputs
-        const allInputs = [
-          goldWeightInput,
-          goldBasePriceInput,
-          wagePercentInput,
-          profitPercentInput,
-          discountInput,
-        ];
-        allInputs.forEach((input) => {
-          input.addEventListener("input", calculatePrice);
-        });
-        // Function to calculate jewelry price
-        function calculateJewelryPrice() {
-          const diamondWeight = parseFloat(diamondWeightInput.value) || 0;
-          const diamondPrice = parseFloat(diamondPriceInput.value) || 0;
-          const jewelryProfit = parseFloat(jewelryProfitInput.value) || 0;
-          const jewelryTax = parseFloat(jewelryTaxInput.value) || 0;
-          const baseDiamondPrice = diamondWeight * diamondPrice;
-          const profitAmount = (baseDiamondPrice * jewelryProfit) / 100;
-          const taxAmount = (profitAmount * jewelryTax) / 100;
-          const finalPrice = baseDiamondPrice + profitAmount + taxAmount;
-          baseDiamondPriceElement.textContent = `${formatNumber(baseDiamondPrice)} تومان`;
-          jewelryProfitAmountElement.textContent = `${formatNumber(profitAmount)} تومان`;
-          jewelryTaxAmountElement.textContent = `${formatNumber(taxAmount)} تومان`;
-          finalJewelryPriceElement.textContent = `${formatNumber(finalPrice)} تومان`;
-        }
-        // Add event listeners for jewelry inputs
-        [diamondWeightInput, diamondPriceInput, jewelryProfitInput].forEach(
-          (input) => {
-            input.addEventListener("input", calculateJewelryPrice);
-          },
-        );
-        // Reset form
-        document.getElementById("resetForm").addEventListener("click", function () {
-          goldWeightInput.value = "";
-          wagePercentInput.value = "";
-          profitPercentInput.value = "";
-          discountInput.value = "";
-          diamondWeightInput.value = "";
-          diamondPriceInput.value = "";
-          jewelryProfitInput.value = "";
-          calculatePrice();
-          calculateJewelryPrice();
-        });
+        // Fetch gold price from API
+        fetch(
+          "https://brsapi.ir/Api/Market/Gold_Currency.php?key=FreewDNFCCmYu96Ot75MdNODKd2LRTik",
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (
+              data &&
+              data.gold &&
+              Array.isArray(data.gold) &&
+              data.currency &&
+              Array.isArray(data.currency)
+            ) {
+              const goldData = data.gold.find(
+                (item) => item.symbol === "IR_GOLD_18K",
+              );
+              const coinData = data.gold.find(
+                (item) => item.symbol === "IR_COIN_BAHAR",
+              );
+              const usdData = data.currency.find((item) => item.symbol === "USD");
+
+              if (coinData) {
+                const coinPriceElement = document.querySelector(
+                  ".bg-white:nth-child(2) .text-2xl",
+                );
+                const coinChangeElement = document.querySelector(
+                  ".bg-white:nth-child(2) .text-sm.font-medium",
+                );
+                const coinIconElement = document.querySelector(
+                  ".bg-white:nth-child(2) .w-6.h-6",
+                );
+                const coinDateElement = document.querySelector(
+                  ".bg-white:nth-child(2) .text-xs.text-gray-500 span:first-child",
+                );
+                const coinTimeElement = document.querySelector(
+                  ".bg-white:nth-child(2) .text-xs.text-gray-500 span:last-child",
+                );
+
+                coinPriceElement.textContent = new Intl.NumberFormat("fa-IR").format(
+                  coinData.price,
+                );
+                const coinChangePercent = parseFloat(coinData.change_percent) || 0;
+                coinChangeElement.textContent = coinChangePercent + "%";
+
+                if (coinChangePercent > 0) {
+                  coinChangeElement.className = "text-sm font-medium text-green-500";
+                  coinIconElement.innerHTML =
+                    '<i class="ri-arrow-up-line ri-lg"></i>';
+                  coinIconElement.className =
+                    "w-6 h-6 flex items-center justify-center mr-1 text-green-500";
+                } else if (coinChangePercent < 0) {
+                  coinChangeElement.className = "text-sm font-medium text-red-500";
+                  coinIconElement.innerHTML =
+                    '<i class="ri-arrow-down-line ri-lg"></i>';
+                  coinIconElement.className =
+                    "w-6 h-6 flex items-center justify-center mr-1 text-red-500";
+                }
+
+                coinDateElement.textContent =
+                  "تاریخ: " + (coinData.date || defaultDate);
+                coinTimeElement.textContent =
+                  "ساعت: " + (coinData.time || defaultTime);
+              }
+
+              if (usdData) {
+                const usdPriceElement = document.querySelector(
+                  ".bg-white:nth-child(3) .text-2xl",
+                );
+                const usdChangeElement = document.querySelector(
+                  ".bg-white:nth-child(3) .text-sm.font-medium",
+                );
+                const usdIconElement = document.querySelector(
+                  ".bg-white:nth-child(3) .w-6.h-6",
+                );
+                const usdDateElement = document.querySelector(
+                  ".bg-white:nth-child(3) .text-xs.text-gray-500 span:first-child",
+                );
+                const usdTimeElement = document.querySelector(
+                  ".bg-white:nth-child(3) .text-xs.text-gray-500 span:last-child",
+                );
+
+                usdPriceElement.textContent = new Intl.NumberFormat("fa-IR").format(
+                  usdData.price,
+                );
+                const usdChangePercent = parseFloat(usdData.change_percent) || 0;
+                usdChangeElement.textContent = usdChangePercent + "%";
+
+                if (usdChangePercent > 0) {
+                  usdChangeElement.className = "text-sm font-medium text-green-500";
+                  usdIconElement.innerHTML = '<i class="ri-arrow-up-line ri-lg"></i>';
+                  usdIconElement.className =
+                    "w-6 h-6 flex items-center justify-center mr-1 text-green-500";
+                } else if (usdChangePercent < 0) {
+                  usdChangeElement.className = "text-sm font-medium text-red-500";
+                  usdIconElement.innerHTML =
+                    '<i class="ri-arrow-down-line ri-lg"></i>';
+                  usdIconElement.className =
+                    "w-6 h-6 flex items-center justify-center mr-1 text-red-500";
+                }
+
+                usdDateElement.textContent =
+                  "تاریخ: " + (usdData.date || defaultDate);
+                usdTimeElement.textContent = "ساعت: " + (usdData.time || defaultTime);
+              }
+              if (goldData && goldData.price) {
+                updateGoldPriceDisplay(
+                  goldData.price,
+                  goldData.change_percent || defaultChange,
+                  goldData.date || defaultDate,
+                  goldData.time || defaultTime,
+                );
+                return;
+              }
+            }
+            // If data is empty or invalid, use default values
+            updateGoldPriceDisplay(
+              defaultPrice,
+              defaultChange,
+              defaultDate,
+              defaultTime,
+            );
+          })
+          .catch((error) => {
+            console.error("Error fetching gold price:", error);
+            // On error, use default values
+            updateGoldPriceDisplay(
+              defaultPrice,
+              defaultChange,
+              defaultDate,
+              defaultTime,
+            );
+          });
       });
     </script>
-  </body>
-</html>
+
+    <script>
+      // Calculator Functions
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get all input elements
+        const goldWeight = document.getElementById("goldWeight");
+        const goldUnitPrice = document.getElementById("goldUnitPrice");
+        const goldDiscount = document.getElementById("goldDiscount");
+        const goldWage = document.getElementById("goldWage");
+        const goldProfit = document.getElementById("goldProfit");
+        const goldTax = document.getElementById("goldTax");
+        const diamondWeight = document.getElementById("diamondWeight");
+        const diamondUnitPrice = document.getElementById("diamondUnitPrice");
+        const diamondProfit = document.getElementById("diamondProfit");
+        const diamondTax = document.getElementById("diamondTax");
+        // Get all result elements
+        const goldBasePrice = document.getElementById("goldBasePrice");
+        const goldWageAmount = document.getElementById("goldWageAmount");
+        const goldProfitAmount = document.getElementById("goldProfitAmount");
+        const goldTaxAmount = document.getElementById("goldTaxAmount");
+        const goldDiscountAmount = document.getElementById("goldDiscountAmount");
+        const goldFinalPrice = document.getElementById("goldFinalPrice");
+        const diamondBasePrice = document.getElementById("diamondBasePrice");
+        const diamondProfitAmount = document.getElementById("diamondProfitAmount");
+        const diamondTaxAmount = document.getElementById("diamondTaxAmount");
+        const diamondFinalPrice = document.getElementById("diamondFinalPrice");
+        const summaryGoldPrice = document.getElementById("summaryGoldPrice");
+        const summaryDiamondPrice = document.getElementById("summaryDiamondPrice");
+        const totalFinalPrice = document.getElementById("totalFinalPrice");
+        // Format number with commas
+        function formatNumber(number) {
+          return new Intl.NumberFormat("fa-IR").format(Math.round(number));
+        }
+        // Calculate gold price
+        function calculateGoldPrice() {
+          const weight = parseFloat(goldWeight.value) || 0;
+          const unitPrice = parseFloat(goldUnitPrice.value) || 0;
+          const discount = parseFloat(goldDiscount.value) || 0;
+          const wagePercent = parseFloat(goldWage.value) || 0;
+          const profitPercent = parseFloat(goldProfit.value) || 0;
+          const taxPercent = parseFloat(goldTax.value) || 0;
+          const base = weight * unitPrice;
+          const wageAmount = (base * wagePercent) / 100;
+          const profitAmount = (base * profitPercent) / 100;
+          const taxAmount = ((wageAmount + profitAmount) * taxPercent) / 100;
+          const total = base + wageAmount + profitAmount + taxAmount - discount;
+          goldBasePrice.textContent = formatNumber(base) + " تومان";
+          goldWageAmount.textContent = formatNumber(wageAmount) + " تومان";
+          goldProfitAmount.textContent = formatNumber(profitAmount) + " تومان";
+          goldTaxAmount.textContent = formatNumber(taxAmount) + " تومان";
+          goldDiscountAmount.textContent = formatNumber(discount) + " تومان";
+          goldFinalPrice.textContent = formatNumber(total) + " تومان";
+          summaryGoldPrice.textContent = formatNumber(total) + " تومان";
+          return total;
+        }
+        // Calculate diamond price
+        function calculateDiamondPrice() {
+          const weight = parseFloat(diamondWeight.value) || 0;
+          const unitPrice = parseFloat(diamondUnitPrice.value) || 0;
+          const profitPercent = parseFloat(diamondProfit.value) || 0;
+          const taxPercent = parseFloat(diamondTax.value) || 0;
+          const base = weight * unitPrice;
+          const profitAmount = (base * profitPercent) / 100;
+          const taxAmount = (profitAmount * taxPercent) / 100;
+          const total = base + profitAmount + taxAmount;
+                diamondBasePrice.textContent = formatNumber(base) + " تومان";
+      diamondProfitAmount.textContent = formatNumber(profitAmount) + " تومان";
+      diamondTaxAmount.textContent = formatNumber(taxAmount) + " تومان";
+      diamondFinalPrice.textContent = formatNumber(total) + " تومان";
+      summaryDiamondPrice.textContent = formatNumber(total) + " تومان";
+      return total;
+    }
+
+    // Calculate total price
+    function calculateTotalPrice() {
+      const goldTotal = calculateGoldPrice();
+      const diamondTotal = calculateDiamondPrice();
+      const total = goldTotal + diamondTotal;
+      totalFinalPrice.textContent = formatNumber(total) + " تومان";
+    }
+
+    // Add event listeners to all input fields
+    [
+      goldWeight,
+      goldUnitPrice,
+      goldDiscount,
+      goldWage,
+      goldProfit,
+      goldTax,
+      diamondWeight,
+      diamondUnitPrice,
+      diamondProfit,
+      diamondTax,
+    ].forEach((input) => {
+      input.addEventListener("input", calculateTotalPrice);
+    });
+
+    // Initialize with default values
+    calculateTotalPrice();
+  });
+</script>
+
+<script>
+  // History Functions
+  document.addEventListener("DOMContentLoaded", function () {
+    const saveButton = document.getElementById("saveCalculation");
+    const historyContainer = document.getElementById("calculationHistory");
+
+    // Load saved calculations from localStorage
+    function loadSavedCalculations() {
+      const savedCalculations =
+        JSON.parse(localStorage.getItem("goldCalculations")) || [];
+      
+      // Clear history container
+      historyContainer.innerHTML = "";
+      
+      if (savedCalculations.length === 0) {
+        historyContainer.innerHTML =
+          '<div class="text-center text-gray-500 py-4">هنوز محاسبه‌ای ذخیره نشده است</div>';
+        return;
+      }
+
+      // Display the most recent 5 calculations
+      savedCalculations.slice(0, 5).forEach((calc, index) => {
+        const historyItem = document.createElement("div");
+        historyItem.className = "bg-gray-100 p-3 rounded";
+        historyItem.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm text-gray-500">${calc.date}</span>
+            <button class="text-primary text-sm load-calculation" data-index="${index}">بازیابی</button>
+          </div>
+          <div class="flex justify-between text-sm mb-1">
+            <span>طلا: ${calc.goldWeight} گرم</span>
+            <span class="font-medium">${calc.goldFinalPrice}</span>
+          </div>
+          ${
+            calc.diamondWeight > 0
+              ? `
+              <div class="flex justify-between text-sm">
+                <span>برلیان: ${calc.diamondWeight} قیراط</span>
+                <span class="font-medium">${calc.diamondFinalPrice}</span>
+              </div>
+              `
+              : ""
+          }
+          <div class="flex justify-between mt-2 pt-2 border-t border-gray-200">
+            <span class="font-bold">مجموع:</span>
+            <span class="font-bold">${calc.totalPrice}</span>
+          </div>
+        `;
+        historyContainer.appendChild(historyItem);
+      });
+
+      // Add event listeners to load buttons
+      document.querySelectorAll(".load-calculation").forEach((button) => {
+        button.addEventListener("click", function () {
+          const index = parseInt(this.getAttribute("data-index"));
+          loadCalculation(savedCalculations[index]);
+        });
+      });
+    }
+
+    // Save current calculation
+    function saveCurrentCalculation() {
+      const currentDate = new Date();
+      const formattedDate = `${currentDate.getFullYear()}/${(currentDate.getMonth() + 1).toString().padStart(2, "0")}/${currentDate.getDate().toString().padStart(2, "0")} ${currentDate.getHours().toString().padStart(2, "0")}:${currentDate.getMinutes().toString().padStart(2, "0")}`;
+      
+      const calculation = {
+        date: formattedDate,
+        goldWeight: document.getElementById("goldWeight").value || 0,
+        goldUnitPrice: document.getElementById("goldUnitPrice").value || 0,
+        goldDiscount: document.getElementById("goldDiscount").value || 0,
+        goldWage: document.getElementById("goldWage").value || 0,
+        goldProfit: document.getElementById("goldProfit").value || 0,
+        goldFinalPrice: document.getElementById("goldFinalPrice").textContent,
+        diamondWeight: document.getElementById("diamondWeight").value || 0,
+        diamondUnitPrice: document.getElementById("diamondUnitPrice").value || 0,
+        diamondProfit: document.getElementById("diamondProfit").value || 0,
+        diamondFinalPrice: document.getElementById("diamondFinalPrice").textContent,
+        totalPrice: document.getElementById("totalFinalPrice").textContent,
+      };
+
+      // Get existing calculations
+      let savedCalculations =
+        JSON.parse(localStorage.getItem("goldCalculations")) || [];
+      
+      // Add new calculation at the beginning
+      savedCalculations.unshift(calculation);
+      
+      // Keep only the most recent 30 calculations
+      if (savedCalculations.length > 30) {
+        savedCalculations = savedCalculations.slice(0, 30);
+      }
+
+      // Save to localStorage
+      localStorage.setItem("goldCalculations", JSON.stringify(savedCalculations));
+      
+      // Reload history
+      loadSavedCalculations();
+      
+      // Show success message
+      alert("محاسبه با موفقیت ذخیره شد");
+    }
+
+    // Load a saved calculation
+    function loadCalculation(calc) {
+      document.getElementById("goldWeight").value = calc.goldWeight;
+      document.getElementById("goldUnitPrice").value = calc.goldUnitPrice;
+      document.getElementById("goldDiscount").value = calc.goldDiscount;
+      document.getElementById("goldWage").value = calc.goldWage;
+      document.getElementById("goldProfit").value = calc.goldProfit;
+      document.getElementById("diamondWeight").value = calc.diamondWeight;
+      document.getElementById("diamondUnitPrice").value = calc.diamondUnitPrice;
+      document.getElementById("diamondProfit").value = calc.diamondProfit;
+      
+      // Trigger calculation
+      document.getElementById("goldWeight").dispatchEvent(new Event("input"));
+      
+      // Show success message
+      alert("محاسبه با موفقیت بازیابی شد");
+    }
+
+    // Add event listener to save button
+    saveButton.addEventListener("click", saveCurrentCalculation);
+    
+    // Load saved calculations on page load
+    loadSavedCalculations();
+  });
+</script>
+
+<script>
+  // Print and Share Functions
+  document.addEventListener('DOMContentLoaded', function() {
+    const printButton = document.getElementById('printInvoice');
+    
+    // Generate invoice number
+    function generateInvoiceNumber() {
+      return 'INV-' + Math.floor(100000 + Math.random() * 900000);
+    }
+    
+    // Format current date
+    function formatCurrentDate() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = (now.getMonth() + 1).toString().padStart(2, '0');
+      const day = now.getDate().toString().padStart(2, '0');
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      return `${year}/${month}/${day} ${hours}:${minutes}`;
+    }
+    
+    // Print invoice
+    async function printInvoice() {
+      const { jsPDF } = window.jspdf;
+      const invoiceElement = document.getElementById('invoicePrintTemplate').cloneNode(true);
+      
+      // Remove history section if exists
+      const historySection = invoiceElement.querySelector('#calculationHistory');
+      if (historySection) {
+        historySection.remove();
+      }
+      
+      // Create PDF
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const canvas = await html2canvas(invoiceElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('invoice.pdf');
+    }
+    
+    // Get values
+    const goldWeight = parseFloat(document.getElementById('goldWeight').value) || 0;
+    const goldUnitPrice = parseFloat(document.getElementById('goldUnitPrice').value) || 0;
+    const goldWage = parseFloat(document.getElementById('goldWage').value) || 0;
+    const goldFinalPrice = document.getElementById('goldFinalPrice').textContent;
+    const diamondWeight = parseFloat(document.getElementById('diamondWeight').value) || 0;
+    const diamondUnitPrice = parseFloat(document.getElementById('diamondUnitPrice').value) || 0;
+    const diamondFinalPrice = document.getElementById('diamondFinalPrice').textContent;
+    const totalPrice = document.getElementById('totalFinalPrice').textContent;
+    const totalTax = document.getElementById('goldTaxAmount').textContent;
+    const totalDiscount = document.getElementById('goldDiscountAmount').textContent;
+    
+    // Update invoice template
+    document.getElementById('invoiceDate').textContent = formatCurrentDate();
+    document.getElementById('invoiceNumber').textContent = generateInvoiceNumber();
+    
+    // Clear previous items
+    document.getElementById('invoiceItems').innerHTML = '';
+    
+    // Add gold item if weight > 0
+    if (goldWeight > 0) {
+      const goldRow = document.createElement('tr');
+      goldRow.innerHTML = `
+        <td class="border border-gray-300 p-2">طلای ۱۸ عیار</td>
+        <td class="border border-gray-300 p-2 text-center">${goldWeight} گرم</td>
+        <td class="border border-gray-300 p-2 text-center">
+          ${new Intl.NumberFormat('fa-IR').format(goldUnitPrice)}
+        </td>
+        <td class="border border-gray-300 p-2 text-center">${goldWage}%</td>
+        <td class="border border-gray-300 p-2 text-center">9%</td>
+        <td class="border border-gray-300 p-2 text-center">${goldFinalPrice}</td>
+      `;
+      document.getElementById('invoiceItems').appendChild(goldRow);
+    }
+    
+    // Add diamond item if weight > 0
+    if (diamondWeight > 0) {
+      const diamondRow = document.createElement('tr');
+      diamondRow.innerHTML = `
+        <td class="border border-gray-300 p-2">برلیان</td>
+        <td class="border border-gray-300 p-2 text-center">
+          ${diamondWeight} قیراط
+        </td>
+        <td class="border border-gray-300 p-2 text-center">
+          ${new Intl.NumberFormat('fa-IR').format(diamondUnitPrice)}
+        </td>
+        <td class="border border-gray-300 p-2 text-center">
+          ${document.getElementById('diamondProfit').value || 0}%
+        </td>
+        <td class="border border-gray-300 p-2 text-center">9%</td>
+        <td class="border border-gray-300 p-2 text-center">${diamondFinalPrice}</td>
+      `;
+      document.getElementById('invoiceItems').appendChild(diamondRow);
+    }
+    
+    // Update totals
+    document.getElementById('invoiceTotalPrice').textContent = totalPrice;
+    document.getElementById('invoiceTotalTax').textContent = totalTax;
+    document.getElementById('invoiceTotalDiscount').textContent = totalDiscount;
+    document.getElementById('invoiceFinalPrice').textContent = totalPrice;
+    
+    // Add event listener to print button
+    printButton.addEventListener('click', printInvoice);
+  });
+</script>
